@@ -1,14 +1,13 @@
 ## Description
 
-A class object PositionOfPanorama that determines whether a panorama is left of, in front of, or right of 
-an origin point using the Google Maps API.
+A class object PositionOfPanorama that determines whether a panorama is left of, in front of, or right of an origin point using the Google Maps API.
 
 ## Installation
 
 Step 1: Clone the repo 
 
 ```
-git clone https://github.com/surferwat/google-maps-address-to-geocodes.git
+git clone https://github.com/surferwat/google-maps-position-of-panorama.git
 ```
 
 Step 2: Install the dependecies
