@@ -17,7 +17,7 @@ type CenterBounds = {
 }
 
 
-class PositionRelativeToOrigin {
+class PositionOfPanorama {
     private _panorama: google.maps.StreetViewPanorama // non-null assertion operator used
     private _originPoint: google.maps.LatLng
     private _hasStretchedCenter: boolean = true
@@ -192,4 +192,4 @@ class PositionRelativeToOrigin {
 }
 
 
-export { PositionRelativeToOrigin }
+export { PositionOfPanorama }
