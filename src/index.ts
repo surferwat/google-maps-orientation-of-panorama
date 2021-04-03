@@ -1,6 +1,6 @@
 const DISTANCE_BETWEEN_BOUNDS = 5 // in meters
 
-enum PanoramaPosition {
+enum PanoramaOrientation {
     Left = 'LEFT',
     Center = 'CENTER',
     Right = 'RIGHT'
@@ -17,7 +17,7 @@ type CenterBounds = {
 }
 
 
-class PositionOfPanorama {
+class OrientationOfPanorama {
     private _panorama: google.maps.StreetViewPanorama // non-null assertion operator used
     private _originPoint: google.maps.LatLng
     private _hasStretchedCenter: boolean = true
@@ -125,12 +125,12 @@ class PositionOfPanorama {
     }
 
     /**
-     * Computes the position of the panorama point relative to the origin point, which tells you whether the 
+     * Computes the orientation of the panorama point relative to the origin point, which tells you whether the 
      * panorama point is on the left side, center, right side of the origin point.
      */
 
-    computePosition(): PanoramaPosition {
-        let position: PanoramaPosition
+    computeOrientation(): PanoramaOrientation {
+        let position: PanoramaOrientation
 
         //// 1) We first need to compute the _center_, point that is along the path of the panorama that is 
         //// directly in front of the origin. To do this, we figure out the angles and sides where we can 
@@ -180,11 +180,11 @@ class PositionOfPanorama {
 
         const yP = this._panorama.getPosition()!.lat()
         if (yLOnLhsLine - yP < 0) {
-            position = PanoramaPosition.Left
+            position = PanoramaOrientation.Left
         } else if (yLOnRhsLine - yP > 0) {
-            position = PanoramaPosition.Right
+            position = PanoramaOrientation.Right
         } else {
-            position = PanoramaPosition.Center
+            position = PanoramaOrientation.Center
         }
 
         return position
@@ -192,4 +192,4 @@ class PositionOfPanorama {
 }
 
 
-export { PositionOfPanorama }
+export { OrientationOfPanorama }
