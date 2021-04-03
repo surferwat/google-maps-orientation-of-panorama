@@ -130,7 +130,10 @@ class OrientationOfPanorama {
      */
 
     computeOrientation(): PanoramaOrientation {
-        let position: PanoramaOrientation
+        const panoramaPosition: google.maps.LatLng | null = this._panorama.getPosition()
+        if (panoramaPosition == null) {
+            throw new Error('could not get position of panorama')
+        }
 
         //// 1) We first need to compute the _center_, point that is along the path of the panorama that is 
         //// directly in front of the origin. To do this, we figure out the angles and sides where we can 
@@ -138,12 +141,12 @@ class OrientationOfPanorama {
         //// origin to the _center_.
 
         // Calculate angle A, which represents the angle between heading from panorama to origin and heading from panorama to center 
-        const headingPanoramaOrigin: number = google.maps.geometry.spherical.computeHeading(this._panorama.getPosition()!, this._originPoint)
+        const headingPanoramaOrigin: number = google.maps.geometry.spherical.computeHeading(panoramaPosition, this._originPoint)
         const headingPanoramaPhotographerPov: number = this._panorama.getPhotographerPov().heading
         const angleA: number = this.angleA(headingPanoramaOrigin, headingPanoramaPhotographerPov)
 
         // Calculate side A, which represents the distance from the origin to the center (i.e., the point in front of the origin along the path of the panorama)
-        const sideB: number = google.maps.geometry.spherical.computeDistanceBetween(this._panorama.getPosition()!, this._originPoint) // distance from panorama to origin
+        const sideB: number = google.maps.geometry.spherical.computeDistanceBetween(panoramaPosition, this._originPoint) // distance from panorama to origin
         const angleB: number = 90 // angle between heading from center to panorama and heading from center to origin
         const sideA: number = this.sideA(angleA, angleB, sideB)
 
@@ -151,7 +154,7 @@ class OrientationOfPanorama {
         const angleC: number = this.angleC(angleA, angleB)
 
         // Compute the _center_ point
-        const pointCenter: google.maps.LatLng = google.maps.geometry.spherical.computeOffset(this._panorama.getPosition()!, sideA, angleC)
+        const pointCenter: google.maps.LatLng = google.maps.geometry.spherical.computeOffset(panoramaPosition, sideA, angleC)
 
         //// 2) We next use the equation for a line in the 2D plane to solve for a y value that is on the line that
         //// represents the path from the _center_ to the origin. If withCenterBounds is set to true (which is so by 
@@ -177,17 +180,18 @@ class OrientationOfPanorama {
         //// 3) We finally can determine whether the panorama facing the origin is doing so from the left hand side,
         //// center, or right hand side by checking the difference between the y value that lies on the line that 
         //// represents the path from the _center_ to the origin and the y value of the panorma.
-
+        
+        let orientation: PanoramaOrientation
         const yP = this._panorama.getPosition()!.lat()
         if (yLOnLhsLine - yP < 0) {
-            position = PanoramaOrientation.Left
+            orientation = PanoramaOrientation.Left
         } else if (yLOnRhsLine - yP > 0) {
-            position = PanoramaOrientation.Right
+            orientation = PanoramaOrientation.Right
         } else {
-            position = PanoramaOrientation.Center
+            orientation = PanoramaOrientation.Center
         }
 
-        return position
+        return orientation
     }
 }
 

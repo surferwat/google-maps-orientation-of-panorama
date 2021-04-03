@@ -64,7 +64,10 @@ const originPoint = {
 }
 
 const orientationOfPanorama = new OrientationOfPanorama(panoramaPov, originPoint)
-const orientation = orientationOfPanorama.computeOrientation()
+orientationOfPanorama
+    .computeOrientation()
+    .then((data) => console.log(data))
+    .catch((e) => console.error(e))
 ```
 
 ## Todo 
