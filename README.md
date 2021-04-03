@@ -7,7 +7,7 @@ Google Maps API implementation to determine whether a panorama is left of, in fr
 Step 1: Clone the repo 
 
 ```
-git clone https://github.com/surferwat/google-maps-position-of-panorama.git
+git clone https://github.com/surferwat/google-maps-orientation-of-panorama.git
 ```
 
 Step 2: Install the dependecies
