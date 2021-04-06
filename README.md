@@ -1,6 +1,6 @@
 ## Description
 
-Google Maps API implementation to determine whether a panorama is left of, in front of, or right of an origin point.
+Google Maps API implementation to determine whether a subject panorama is left of, in front of, or right of a map center point.
 
 ## Installation
 
@@ -30,9 +30,9 @@ npm install /file/path/to/module
 
 ## Usage
 
-You may want to know whether a Street View panorama is to the left, in front of, or to the right of an origin point. `OrientationOfPanorama` provides a method, `computeOrientation`, that when called returns a `string` (LEFT, CENTER, or RIGHT). 
+You may want to know whether a subject Street View panorama is to the left, in front of, or to the right of a map center point. `OrientationOfPanorama` provides a method, `computeOrientation`, that when called returns a `string` (LEFTOF, FRONTOF, or RIGHTOF). 
 
-A Street View panorama could technically be on the left- or right-hand side, but optically could be considered in front of the origin. `OrientationOfPanorama` provides a setter method, `hasStretchedCenter` which takes a boolean value to set the corresponding field. If set to `true`, a range of points would be used to represent the points in front of the origin. If `false`, a single point would be used to represent the point in front of the origin. `hasStretchedCenter` is set to `true` by default. The range is represented by the constant `DISTANCE_BETWEEN_BOUNDS`, which has a value of 5 (unit measure is in meters).
+A subject Street View panorama could technically be on the left- or right-hand side, but optically could be considered in front of the map center. `OrientationOfPanorama` provides a method, `frontOfIsRange` which takes a boolean value to set the corresponding field. If set to `true`, a range of points would be used to represent the points in front of the map center point. If `false`, a single point would be used to represent the point in front of the map center. `frontOfIsRaneg` is set to `true` by default. The range is represented by the constant `DISTANCE_BETWEEN_BOUNDS`, which has a value of 5 (unit measure is in meters).
 
 ```javascript
 import { Loader } from '@googlemaps/js-api-loader'
@@ -58,12 +58,12 @@ loader
         )
     })
 
-const originPoint = { 
+const mapCenterPoint = { 
     lat: 37.86926, 
     lng: -122.254811
 }
 
-const orientationOfPanorama = new OrientationOfPanorama(panoramaPov, originPoint)
+const orientationOfPanorama = new OrientationOfPanorama(panoramaPov, mapCenterPoint)
 orientationOfPanorama
     .computeOrientation()
     .then((data) => console.log(data))
@@ -73,7 +73,7 @@ orientationOfPanorama
 ## Todo 
 
 * [ ] Add tests
-* [ ] Consider pre-condition to check whether panorama is relevant for the origin
+* [ ] Consider pre-condition to check whether panorama is relevant for the map center
 
 ## References
 

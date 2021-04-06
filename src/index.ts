@@ -1,17 +1,17 @@
 const DISTANCE_BETWEEN_BOUNDS = 5 // in meters
 
 enum PanoramaOrientation {
-    Left = 'LEFT',
-    Center = 'CENTER',
-    Right = 'RIGHT'
+    LeftOf = 'LEFTOF',
+    FrontOf = 'FRONTOF',
+    RightOf = 'RIGHTOF'
 }
 
-type Bearings = {
-    bearingToLeftBound: number,
-    bearingToRightBound: number
+type BearingsToFrontOfBounds = {
+    toLeftBound: number,
+    toRightBound: number
 }
 
-type CenterBounds = {
+type FrontOfBounds = {
     leftBound: google.maps.LatLng,
     rightBound: google.maps.LatLng
 }
@@ -19,21 +19,21 @@ type CenterBounds = {
 
 class OrientationOfPanorama {
     private _panorama: google.maps.StreetViewPanorama // non-null assertion operator used
-    private _originPoint: google.maps.LatLng
-    private _hasStretchedCenter: boolean = true
+    private _mapCenterPoint: google.maps.LatLng
+    private _frontOfIsRange: boolean = true
 
-    constructor(initPanorama: google.maps.StreetViewPanorama, initOriginPoint: google.maps.LatLng) {
+    constructor(initPanorama: google.maps.StreetViewPanorama, initMapCenterPoint: google.maps.LatLng) {
         this._panorama = initPanorama
-        this._originPoint = initOriginPoint
+        this._mapCenterPoint = initMapCenterPoint
     }
 
     set hasStretchedCenter(boolean: boolean) {
-        this._hasStretchedCenter = boolean
+        this._frontOfIsRange = boolean
     }
 
     /**
-     * Calculates the angle A which represents the angle between the heading from the panorama to the 
-     * origin and the heading from the panorama to _center_.
+     * Calculates the angle A which represents the angle between the heading from the subject panorama to the 
+     * map center and the heading from the subject panorama to _front of_ point.
      * @param heading1 
      * @param heading2 
      */
@@ -52,8 +52,8 @@ class OrientationOfPanorama {
     }
 
     /**
-     * Calculates side A, which represents the distance from the origin to the _center_ (i.e., the point in 
-     * front of the origin along the path of the panorama).
+     * Calculates side A, which represents the distance from the map center to the _front of_ point (i.e., the point in 
+     * front of the map center that sits along the same path as the subject panorama).
      * @param angleA 
      * @param angleB 
      * @param sideB 
@@ -64,8 +64,8 @@ class OrientationOfPanorama {
     }
 
     /**
-     * Calculates angle C, which represents the angle between the heading from the origin to the panorama and 
-     * the heading from the origin to the _center_.
+     * Calculates angle C, which represents the angle between the heading from the map center to the subject panorama and 
+     * the heading from the map center to the _front of_ point.
      * @param angleA 
      * @param angleB 
      */
@@ -75,38 +75,38 @@ class OrientationOfPanorama {
     }
 
     /**
-     * Sets the bearing towards the left and right bounds for panorama points that would be considered
-     * to be in the _center_ (i.e., where it would be considered in front of the origin)
+     * Sets the bearing towards the left and right bounds for the panorama points that would represent the
+     * _front of_ range(i.e., the area that would be considered in front of the map center)
      * @param heading 
      */
 
-    private bearingsTowardsCenterBounds(heading: number): Bearings {
-        const bearings: Bearings = {
-            bearingToLeftBound: heading - 90,
-            bearingToRightBound: heading + 90
+    private bearingsTowardsFrontOfBounds(heading: number): BearingsToFrontOfBounds {
+        const bearings: BearingsToFrontOfBounds = {
+            toLeftBound: heading - 90,
+            toRightBound: heading + 90
         }
         return bearings
     }
 
     /**
      * Sets the points for the left and right bounds for panorama points that would be considered 
-     * to be in the _center_ (i.e., placed in front of the origin).
-     * @param originPoint 
+     * to be in the _center_ (i.e., placed in front of the map).
+     * @param pointCenter 
      * @param distanceToEnd 
      * @param bearings 
      */
 
-    private centerBounds(pointCenter: google.maps.LatLng, distanceToEnd: number, bearings: Bearings): CenterBounds {
-        const bounds: CenterBounds = {
-            leftBound: google.maps.geometry.spherical.computeOffset(pointCenter, distanceToEnd, bearings.bearingToLeftBound),
-            rightBound: google.maps.geometry.spherical.computeOffset(pointCenter, distanceToEnd, bearings.bearingToRightBound)
+    private centerBounds(pointCenter: google.maps.LatLng, distanceToEnd: number, bearings: BearingsToFrontOfBounds): FrontOfBounds {
+        const bounds: FrontOfBounds = {
+            leftBound: google.maps.geometry.spherical.computeOffset(pointCenter, distanceToEnd, bearings.toLeftBound),
+            rightBound: google.maps.geometry.spherical.computeOffset(pointCenter, distanceToEnd, bearings.toRightBound)
         }
         return bounds
     }
     
     /**
      * Calculates the y value (i.e., lat) that lies on the line that in this context represents the path from 
-     * the _center_ to the origin.
+     * the _center_ to the map.
      * @param point1 
      * @param xl 
      */
@@ -114,8 +114,8 @@ class OrientationOfPanorama {
     private yValueOnLine(point1: google.maps.LatLng): number {
         const y1: number = point1.lat()
         const x1: number = point1.lng()
-        const y2: number = this._originPoint.lat()
-        const x2: number = this._originPoint.lng()
+        const y2: number = this._mapCenterPoint.lat()
+        const x2: number = this._mapCenterPoint.lng()
         const xL: number = this._panorama.getPosition()!.lng()
 
         const m: number = (y2-y1) / (x2-x1)
@@ -125,8 +125,8 @@ class OrientationOfPanorama {
     }
 
     /**
-     * Computes the orientation of the panorama point relative to the origin point, which tells you whether the 
-     * panorama point is on the left side, center, right side of the origin point.
+     * Computes the orientation of the panorama point relative to the map point, which tells you whether the 
+     * subject panorama point is to the left of, in front, or right of the map center point.
      */
 
     computeOrientation(): PanoramaOrientation {
@@ -135,60 +135,62 @@ class OrientationOfPanorama {
             throw new Error('could not get position of panorama')
         }
 
-        //// 1) We first need to compute the _center_, point that is along the path of the panorama that is 
-        //// directly in front of the origin. To do this, we figure out the angles and sides where we can 
-        //// and finally use the Law of Sines to calculate the side representing the distance from the 
-        //// origin to the _center_.
+        //// 1) We first need to compute the _front of_ point that is along the path of the panorama that is 
+        //// directly in front of the map. To do this, we figure out the angles and sides where we can 
+        //// and, subsequently, use the Law of Sines to calculate the side representing the distance from the 
+        //// map center point to the _front of_ point.
 
-        // Calculate angle A, which represents the angle between heading from panorama to origin and heading from panorama to center 
-        const headingPanoramaOrigin: number = google.maps.geometry.spherical.computeHeading(panoramaPosition, this._originPoint)
+        // Calculate angle A, which represents the angle between the heading from the subject panorama to the map center
+        // and the heading from subject panorama point to front of point 
+        const headingPanoramaMapCenter: number = google.maps.geometry.spherical.computeHeading(panoramaPosition, this._mapCenterPoint)
         const headingPanoramaPhotographerPov: number = this._panorama.getPhotographerPov().heading
-        const angleA: number = this.angleA(headingPanoramaOrigin, headingPanoramaPhotographerPov)
+        const angleA: number = this.angleA(headingPanoramaMapCenter, headingPanoramaPhotographerPov)
 
-        // Calculate side A, which represents the distance from the origin to the center (i.e., the point in front of the origin along the path of the panorama)
-        const sideB: number = google.maps.geometry.spherical.computeDistanceBetween(panoramaPosition, this._originPoint) // distance from panorama to origin
-        const angleB: number = 90 // angle between heading from center to panorama and heading from center to origin
+        // Calculate side A, which represents the distance from the map center to the panorama center (i.e., the point in 
+        // front of the map center point that is along the path of the panorama)
+        const sideB: number = google.maps.geometry.spherical.computeDistanceBetween(panoramaPosition, this._mapCenterPoint) // distance from subject panorama to map center
+        const angleB: number = 90 // angle between the heading from front of panorama to the subject panorama and the heading from the front panorama to the map center
         const sideA: number = this.sideA(angleA, angleB, sideB)
 
-        // Calculate angle C, which represents the angle between heading from origin to panorama and heading from origin to center
+        // Calculate angle C, which represents the angle between the heading from the map center to the subject panorama and the heading from the map center to the front of panorama
         const angleC: number = this.angleC(angleA, angleB)
 
-        // Compute the _center_ point
+        // Compute the _front of_ point
         const pointCenter: google.maps.LatLng = google.maps.geometry.spherical.computeOffset(panoramaPosition, sideA, angleC)
 
         //// 2) We next use the equation for a line in the 2D plane to solve for a y value that is on the line that
-        //// represents the path from the _center_ to the origin. If withCenterBounds is set to true (which is so by 
-        //// default), then _center_ represents not just one point, but a range of points. So, we would have to calculate
+        //// represents the path from the _front of_ to the map center. If withCenterBounds is set to true (which is so by 
+        //// default), then _front of_ represents not just one point, but a range of points. So, we would have to calculate
         //// the y value for the left bound (i.e, left hand side or LHS) and the right bound (i.e., right hand side 
         //// or RHS).
 
         let yLOnLhsLine: number 
         let yLOnRhsLine: number
-        if (this._hasStretchedCenter) {
-            const headingCenterOrigin: number = google.maps.geometry.spherical.computeHeading(pointCenter, this._originPoint)
-            const bearingsCenterBounds: Bearings = this.bearingsTowardsCenterBounds(headingCenterOrigin)
-            const pointsCenterBounds: CenterBounds = this.centerBounds(pointCenter, DISTANCE_BETWEEN_BOUNDS/2, bearingsCenterBounds)
+        if (this._frontOfIsRange) {
+            const headingFrontOfMapCenter: number = google.maps.geometry.spherical.computeHeading(pointCenter, this._mapCenterPoint)
+            const bearingsFrontOfBounds: BearingsToFrontOfBounds = this.bearingsTowardsFrontOfBounds(headingFrontOfMapCenter)
+            const pointsFrontOfBounds: FrontOfBounds = this.centerBounds(pointCenter, DISTANCE_BETWEEN_BOUNDS/2, bearingsFrontOfBounds)
             
-            yLOnLhsLine = this.yValueOnLine(pointsCenterBounds.leftBound)
-            yLOnRhsLine = this.yValueOnLine(pointsCenterBounds.rightBound)
+            yLOnLhsLine = this.yValueOnLine(pointsFrontOfBounds.leftBound)
+            yLOnRhsLine = this.yValueOnLine(pointsFrontOfBounds.rightBound)
         } else {
             const ylOnLine : number = this.yValueOnLine(pointCenter)
             yLOnLhsLine = ylOnLine
             yLOnRhsLine = ylOnLine
         }
 
-        //// 3) We finally can determine whether the panorama facing the origin is doing so from the left hand side,
-        //// center, or right hand side by checking the difference between the y value that lies on the line that 
-        //// represents the path from the _center_ to the origin and the y value of the panorma.
+        //// 3) We finally can determine whether the subject panorama facing the map center is doing so from the left 
+        //// hand side, center, or right hand side by checking the difference between the y value that lies on the line that 
+        //// represents the path from the _front of_ to the map center and the y value of the panorama.
         
         let orientation: PanoramaOrientation
         const yP = this._panorama.getPosition()!.lat()
         if (yLOnLhsLine - yP < 0) {
-            orientation = PanoramaOrientation.Left
+            orientation = PanoramaOrientation.LeftOf
         } else if (yLOnRhsLine - yP > 0) {
-            orientation = PanoramaOrientation.Right
+            orientation = PanoramaOrientation.RightOf
         } else {
-            orientation = PanoramaOrientation.Center
+            orientation = PanoramaOrientation.FrontOf
         }
 
         return orientation
