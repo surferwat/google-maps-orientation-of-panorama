@@ -16,7 +16,6 @@ type FrontOfBounds = {
     rightBound: google.maps.LatLng
 }
 
-
 class OrientationOfPanorama {
     private _panorama: google.maps.StreetViewPanorama // non-null assertion operator used
     private _mapCenterPoint: google.maps.LatLng
@@ -196,6 +195,5 @@ class OrientationOfPanorama {
         return orientation
     }
 }
-
 
 export { OrientationOfPanorama }

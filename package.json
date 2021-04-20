@@ -1,7 +1,7 @@
 {
-  "name": "google-maps-position-of-panorama",
+  "name": "google-maps-orientation-of-panorama",
   "private": false,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A class object to determine the position of a panorama relative to an origin",
   "main": "build/index.js",
   "types": "build/index.d.ts",
